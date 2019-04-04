@@ -31,6 +31,7 @@ Octoshell::Application.routes.draw do
   mount Announcements::Engine, :at => "/announcements"
   mount Comments::Engine, :at => "/comments"
   mount Hardware::Engine, at: "/hardware"
+  mount Quotas::Engine, at: "/quotas"
 
   root "face/home#show"
 

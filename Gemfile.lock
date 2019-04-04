@@ -146,6 +146,12 @@ PATH
       slim
 
 PATH
+  remote: engines/quotas
+  specs:
+    quotas (0.0.1)
+      rails (~> 4.2.11)
+
+PATH
   remote: engines/sessions
   specs:
     sessions (0.0.1)
@@ -668,6 +674,7 @@ DEPENDENCIES
   pry-rails
   puma
   quiet_assets
+  quotas!
   railroady
   rails (~> 4.2)
   rails-erd
