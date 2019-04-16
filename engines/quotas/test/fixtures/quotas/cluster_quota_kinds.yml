@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cluster_id: 1
+  quota_kind_id: 1
+  comment_ru: MyString
+  comment_en: MyString
+  applies_to_partitions: false
+  semantics_id: 1
+  semantics_type: MyString
+
+two:
+  cluster_id: 1
+  quota_kind_id: 1
+  comment_ru: MyString
+  comment_en: MyString
+  applies_to_partitions: false
+  semantics_id: 1
+  semantics_type: MyString
