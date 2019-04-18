@@ -1,3 +1,4 @@
+# workaround for https://github.com/rails/rails/issues/14472
 require_relative '../../config/initializers/inflections'
 
 module Quotas

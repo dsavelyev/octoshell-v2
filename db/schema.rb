@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190416134960) do
+ActiveRecord::Schema.define(version: 20190430173118) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -412,7 +412,7 @@ ActiveRecord::Schema.define(version: 20190416134960) do
   end
 
   create_table "core_projects", force: :cascade do |t|
-    t.string   "title",                      limit: 255, null: false
+    t.string   "title",                      limit: 255,                 null: false
     t.string   "state",                      limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -422,6 +422,7 @@ ActiveRecord::Schema.define(version: 20190416134960) do
     t.datetime "first_activation_at"
     t.datetime "finished_at"
     t.datetime "estimated_finish_date"
+    t.boolean  "users_can_request_quotas",               default: false, null: false
   end
 
   add_index "core_projects", ["kind_id"], name: "index_core_projects_on_kind_id", using: :btree
@@ -804,6 +805,7 @@ ActiveRecord::Schema.define(version: 20190416134960) do
   create_table "quotas_cluster_quota_kinds", force: :cascade do |t|
     t.integer  "cluster_id",            null: false
     t.integer  "quota_kind_id",         null: false
+    t.string   "machine_name",          null: false
     t.string   "comment_ru",            null: false
     t.string   "comment_en",            null: false
     t.boolean  "applies_to_partitions", null: false
@@ -814,13 +816,15 @@ ActiveRecord::Schema.define(version: 20190416134960) do
     t.datetime "updated_at",            null: false
   end
 
+  add_index "quotas_cluster_quota_kinds", ["cluster_id", "machine_name"], name: "i_cqk_on_cluster_and_machine_name", unique: true, using: :btree
   add_index "quotas_cluster_quota_kinds", ["cluster_id", "quota_kind_id"], name: "i_cqk_on_cluster_and_quota_kind", unique: true, using: :btree
 
   create_table "quotas_override_semantics_data", force: :cascade do |t|
-    t.string   "priority",   null: false
-    t.string   "state",      null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string   "priority",         null: false
+    t.string   "desired_priority", null: false
+    t.string   "state",            null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
   end
 
   create_table "quotas_quota_kinds", force: :cascade do |t|
@@ -835,20 +839,21 @@ ActiveRecord::Schema.define(version: 20190416134960) do
   end
 
   create_table "quotas_quotas", force: :cascade do |t|
-    t.boolean  "has_subject",             null: false
+    t.integer  "_uniq_subject_id",             null: false
+    t.string   "_uniq_subject_type",           null: false
     t.integer  "subject_id"
     t.string   "subject_type"
-    t.integer  "kind_id",                 null: false
-    t.integer  "object_id",               null: false
-    t.string   "object_type",             null: false
-    t.string   "state",                   null: false
-    t.integer  "current_value", limit: 8
-    t.integer  "desired_value", limit: 8
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.integer  "kind_id",                      null: false
+    t.integer  "domain_id",                    null: false
+    t.string   "domain_type",                  null: false
+    t.string   "state",                        null: false
+    t.integer  "current_value",      limit: 8
+    t.integer  "desired_value",      limit: 8
+    t.datetime "created_at",                   null: false
+    t.datetime "updated_at",                   null: false
   end
 
-  add_index "quotas_quotas", ["has_subject", "subject_id", "subject_type", "kind_id", "object_id", "object_type"], name: "i_quotas_on_subject_kind_and_object", unique: true, using: :btree
+  add_index "quotas_quotas", ["_uniq_subject_id", "_uniq_subject_type", "kind_id", "domain_id", "domain_type"], name: "i_quotas_on_subject_kind_and_domain", unique: true, using: :btree
 
   create_table "sessions_projects_in_sessions", force: :cascade do |t|
     t.integer "session_id"

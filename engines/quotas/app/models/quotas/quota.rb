@@ -1,42 +1,57 @@
 module Quotas
   class Quota < ActiveRecord::Base
     belongs_to :subject, polymorphic: true
-    belongs_to :kind, class_name: ClusterQuotaKind
-    belongs_to :object, polymorphic: true
+    belongs_to :kind, class_name: "ClusterQuotaKind", inverse_of: :quotas
+    belongs_to :domain, polymorphic: true
 
-    validates :kind, :object, :state, presence: true
+    validates :kind, :domain, :state, presence: true
 
     validate on: :create do |quota|
-      if quota.class.exists? subject: subject, kind: kind, object: object
-        errors[:base] << 'A quota already exists for this subject-kind-object combination'
+      if quota.class.exists? subject: subject, kind: kind, domain: domain
+        # FIXME: localize
+        errors[:base] << 'A quota already exists for this subject-kind-domain combination'
       end
     end
 
+    validate do |quota|
+      dom_id = quota.domain_id
+      cluster_id =
+        case quota.domain_type
+        when 'Core::Cluster'
+          dom_id
+        when 'Core::Partition'
+          quota.domain.cluster_id
+        end
+
+      if kind.cluster_id != cluster_id
+        errors[:kind] << 'invalid for the specified cluster'
+      end
+
+      if kind.applies_to_partitions != (quota.domain_type == 'Core::Partition')
+        errors[:kind] << "invalid for the specified domain's type"
+      end
+    end
+
+    attr_readonly :_uniq_subject_id, :_uniq_subject_type
+    attr_readonly :subject_id, :subject_type
+    attr_readonly :kind_id
+    attr_readonly :domain_id, :domain_type
+
     before_save do
-      self.has_subject = !subject.nil?
-      nil  # don't return false and crash the operation
+      _uniq_subject_id = subject_id || 0
+      _uniq_subject_type = subject_type || ''
+
+      nil
     end
 
-    def self.join_on_projects
-      joins <<-SQL.squish
-        LEFT OUTER JOIN core_projects
-        ON quotas_quotas.subject_type = 'Core::Project' AND quotas_quotas.subject_id = core_projects.id
-      SQL
-    end
+    # XXX: these do unnecessary joins
+    ransack_alias :project_id, 'subject_of_Core::Project_type_id_or_subject_of_Core::Member_type_project_id'
+    ransack_alias :direct_project_id, 'subject_of_Core::Project_type_id'
+    ransack_alias :member_id, 'subject_of_Core::Member_type_id'
+    ransack_alias :user_id, 'subject_of_Core::Member_type_user_id'
 
-    def self.join_on_members
-      joins <<-SQL.squish
-        LEFT OUTER JOIN core_members
-        ON quotas_quotas.subject_type = 'Core::Member' AND quotas_quotas.subject_id = core_members.id
-      SQL
-    end
-
-    def self.join_on_subjects
-      join_on_members.joins <<-SQL.squish
-        LEFT OUTER JOIN core_projects
-        ON quotas_quotas.subject_type = 'Core::Project' AND quotas_quotas.subject_id = core_projects.id
-           OR core_members.project_id = core_projects.id
-      SQL
-    end
+    ransack_alias :cluster_id, 'domain_of_Core::Cluster_type_id_or_domain_of_Core::Partition_type_cluster_id'
+    ransack_alias :direct_cluster_id, 'domain_of_Core::Cluster_type_id'
+    ransack_alias :partition_id, 'domain_of_Core::Partition_type_id'
   end
 end

@@ -1,3 +1,3 @@
 Core::Project.class_eval do
-  has_many :quotas, as: :subject, class_name: Quotas::Quota
+  has_many :quotas, class_name: "Quotas::Quota", as: :subject
 end
