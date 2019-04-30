@@ -16,17 +16,10 @@ module Quotas
     validates_translated :comment, presence: true
     validates_inclusion_of :applies_to_partitions, in: [false, true]
 
-    # semantics_data.class works too, but incurs a select
-    def semantics_data_class
-      semantics_data_type&.constantize || NilClass
-    end
-
     def semantics
       semantics_type.constantize.new(semantics_data)
     end
 
-    def quotas_where_semantics(h)
-      quotas.merge(semantics.quotas_where(h))
-    end
+    scope :quotas_where_semantics, ->(h) { quotas.merge(semantics.quotas_where(h)) }
   end
 end

@@ -9,7 +9,7 @@ module Quotas
     validate on: :create do |quota|
       if quota.class.exists? subject: subject, kind: kind, domain: domain
         # FIXME: localize
-        errors[:base] << 'A quota already exists for this subject-kind-domain combination'
+        errors[:base] << t('quotas.quota.already_exists')
       end
     end
 
@@ -24,11 +24,11 @@ module Quotas
         end
 
       if kind.cluster_id != cluster_id
-        errors[:kind] << 'invalid for the specified cluster'
+        errors[:kind] << t('quotas.quota.invalid_for_cluster')
       end
 
       if kind.applies_to_partitions != (quota.domain_type == 'Core::Partition')
-        errors[:kind] << "invalid for the specified domain's type"
+        errors[:kind] << t('quotas.quota.invalid_for_domain_type')
       end
     end
 
@@ -38,8 +38,8 @@ module Quotas
     attr_readonly :domain_id, :domain_type
 
     before_save do
-      _uniq_subject_id = subject_id || 0
-      _uniq_subject_type = subject_type || ''
+      self._uniq_subject_id = subject_id || 0
+      self._uniq_subject_type = subject_type || ''
 
       nil
     end

@@ -1,0 +1,44 @@
+ru:
+  quotas:
+    quota:
+      already_exists: Для этой комбинации субъект-вид-область уже есть квота
+      invalid_for_cluster: недопустим для данного кластера
+      invalid_for_domain_type: недопустим для данного вида области
+
+    override_semantics:
+      priority_set_mismatch: не соответствует множеству допустимых уровней
+      priority_duplicates: содержит повторы
+
+    semantics_types:
+      cumulative: Кумулятивная
+      override: Переопределение
+
+  activerecord:
+    models:
+      quotas/cluster_quota_kind: Вид квоты на кластере
+      quotas/quota: Квота
+      quotas/quota_kind: Вид квоты
+    attributes:
+      quotas/cluster_quota_kind:
+        machine_name: Имя на кластере
+        comment: Комментарий
+        applies_to_partitions: Для разделов
+        semantics_type: Вид семантики
+
+      quotas/override_semantics_data:
+        priority: Список приоритетов
+        desired_priority: Желаемый список приоритетов
+        state: Состояние
+
+      quotas/quota_kind:
+        name: Название
+        unit: Единица измерения
+        comment: Комментарий
+
+      quotas/quota:
+        subject: Субъект
+        kind: Вид
+        domain: Область
+        state: Состояние
+        current_value: Текущее значение
+        desired_value: Желаемое значение

@@ -4,6 +4,7 @@ module Quotas
     VALID_SCOPES = Set.new(DEFAULT_PRIORITY).freeze
 
     serialize :priority
+    serialize :desired_priority
 
     has_one :cluster_quota_kind, as: :semantics_data
 
@@ -11,14 +12,15 @@ module Quotas
       priority ||= DEFAULT_PRIORITY
     end
 
-    validates :priority, :state, presence: true
+    validates :priority, :desired_priority, :state, presence: true
+
     validate do |sem|
       prio_set = sem.priority.to_set
 
       if prio_set != VALID_SCOPES
-        errors[:priority] << 'does not match the set of valid scopes'
+        errors[:priority] << t('quotas.override_semantics.priority_set_mismatch')
       elsif prio_set.length != sem.priority.length
-        errors[:priority] << 'has duplicate values'
+        errors[:priority] << t('quotas.override_semantics.priority_duplicates')
       end
     end
   end
