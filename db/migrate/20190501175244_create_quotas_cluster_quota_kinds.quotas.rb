@@ -1,3 +1,4 @@
+# This migration comes from quotas (originally 20190407145821)
 class CreateQuotasClusterQuotaKinds < ActiveRecord::Migration
   def change
     create_table :quotas_cluster_quota_kinds do |t|

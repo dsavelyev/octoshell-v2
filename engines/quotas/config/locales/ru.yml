@@ -18,9 +18,10 @@ ru:
       quotas/cluster_quota_kind: Вид квоты на кластере
       quotas/quota: Квота
       quotas/quota_kind: Вид квоты
+
     attributes:
       quotas/cluster_quota_kind:
-        machine_name: Имя на кластере
+        name_on_cluster: Имя на кластере
         comment: Комментарий
         applies_to_partitions: Для разделов
         semantics_type: Вид семантики

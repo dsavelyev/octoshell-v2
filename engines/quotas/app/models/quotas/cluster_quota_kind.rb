@@ -10,16 +10,18 @@ module Quotas
 
     translates :comment
 
-    validates :cluster, :quota_kind, presence: true
-    validates_uniqueness_of :quota_kind, scope: :cluster
-
+    validates :cluster, presence: true
+    validates :quota_kind, presence: true, uniqueness: { scope: :cluster }
+    validates :name_on_cluster, presence: true, uniqueness: { scope: :cluster }
+    validates :applies_to_partitions, inclusion: { in: [false, true] }
     validates_translated :comment, presence: true
-    validates_inclusion_of :applies_to_partitions, in: [false, true]
 
     def semantics
       semantics_type.constantize.new(semantics_data)
     end
 
-    scope :quotas_where_semantics, ->(h) { quotas.merge(semantics.quotas_where(h)) }
+    def quotas_where_semantics(h)
+      quotas.merge(semantics.quotas_where(h))
+    end
   end
 end

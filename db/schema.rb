@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190430173118) do
+ActiveRecord::Schema.define(version: 20190501175247) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -805,7 +805,7 @@ ActiveRecord::Schema.define(version: 20190430173118) do
   create_table "quotas_cluster_quota_kinds", force: :cascade do |t|
     t.integer  "cluster_id",            null: false
     t.integer  "quota_kind_id",         null: false
-    t.string   "machine_name",          null: false
+    t.string   "name_on_cluster",       null: false
     t.string   "comment_ru",            null: false
     t.string   "comment_en",            null: false
     t.boolean  "applies_to_partitions", null: false
@@ -816,7 +816,7 @@ ActiveRecord::Schema.define(version: 20190430173118) do
     t.datetime "updated_at",            null: false
   end
 
-  add_index "quotas_cluster_quota_kinds", ["cluster_id", "machine_name"], name: "i_cqk_on_cluster_and_machine_name", unique: true, using: :btree
+  add_index "quotas_cluster_quota_kinds", ["cluster_id", "name_on_cluster"], name: "i_cqk_on_cluster_and_name_on_cluster", unique: true, using: :btree
   add_index "quotas_cluster_quota_kinds", ["cluster_id", "quota_kind_id"], name: "i_cqk_on_cluster_and_quota_kind", unique: true, using: :btree
 
   create_table "quotas_override_semantics_data", force: :cascade do |t|

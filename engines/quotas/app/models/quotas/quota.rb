@@ -8,7 +8,6 @@ module Quotas
 
     validate on: :create do |quota|
       if quota.class.exists? subject: subject, kind: kind, domain: domain
-        # FIXME: localize
         errors[:base] << t('quotas.quota.already_exists')
       end
     end

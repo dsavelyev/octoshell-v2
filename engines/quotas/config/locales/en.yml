@@ -9,8 +9,6 @@ en:
       priority_set_mismatch: does not match the set of valid scopes
       priority_duplicates: contains duplicate values
 
-  activerecord:
-    attributes:
-      quotas/cluster_quota_kind:
-        priority: Priority list
-        desired_priority: Desired priority list
+    semantics_types:
+      cumulative: Cumulative
+      override: Override
