@@ -2,6 +2,7 @@ en:
   quotas:
     quota:
       already_exists: A quota already exists for this subject-kind-domain combination
+      both_values_nil: Desired and current values cannot both be nil
       invalid_for_cluster: invalid for the specified cluster
       invalid_for_domain_type: invalid for the specified domain's type
 
