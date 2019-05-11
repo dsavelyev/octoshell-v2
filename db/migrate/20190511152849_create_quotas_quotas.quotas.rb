@@ -10,6 +10,7 @@ class CreateQuotasQuotas < ActiveRecord::Migration
       t.string     :state,              null: false
       t.integer    :current_value,      limit: 8
       t.integer    :desired_value,      limit: 8
+      t.integer    :lock_version,       limit: 8, null: false, default: 1
 
       t.timestamps null: false
     end
