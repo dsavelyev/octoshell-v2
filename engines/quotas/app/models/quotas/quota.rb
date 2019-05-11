@@ -1,8 +1,3 @@
-# General note: the _uniq_subject_{id,type} columns are there for the unique index
-# and are equal to subject_{id,type} except when those are NULL, in which case they
-# are 0 and '' instead. The index uses the _uniq_* columns instead of the "real" ones
-# because the latter may contain NULLs, which are treated as distinct values.
-
 module Quotas
   class Quota < ActiveRecord::Base
     belongs_to :subject, polymorphic: true
