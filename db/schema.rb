@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190511152851) do
+ActiveRecord::Schema.define(version: 20190511163513) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -820,12 +820,12 @@ ActiveRecord::Schema.define(version: 20190511152851) do
   add_index "quotas_cluster_quota_kinds", ["cluster_id", "quota_kind_id"], name: "i_cqk_on_cluster_and_quota_kind", unique: true, using: :btree
 
   create_table "quotas_override_semantics_data", force: :cascade do |t|
-    t.string   "current_priority",                       null: false
-    t.string   "desired_priority",                       null: false
-    t.string   "state",                                  null: false
-    t.integer  "lock_version",     limit: 8, default: 1, null: false
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.string   "current_priority",                                    null: false
+    t.string   "desired_priority",                                    null: false
+    t.string   "state",                      default: "never_synced", null: false
+    t.integer  "lock_version",     limit: 8, default: 1,              null: false
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
   end
 
   create_table "quotas_quota_kinds", force: :cascade do |t|
@@ -840,19 +840,19 @@ ActiveRecord::Schema.define(version: 20190511152851) do
   end
 
   create_table "quotas_quotas", force: :cascade do |t|
-    t.integer  "_uniq_subject_id",                         null: false
-    t.string   "_uniq_subject_type",                       null: false
+    t.integer  "_uniq_subject_id",                                      null: false
+    t.string   "_uniq_subject_type",                                    null: false
     t.integer  "subject_id"
     t.string   "subject_type"
-    t.integer  "kind_id",                                  null: false
-    t.integer  "domain_id",                                null: false
-    t.string   "domain_type",                              null: false
-    t.string   "state",                                    null: false
+    t.integer  "kind_id",                                               null: false
+    t.integer  "domain_id",                                             null: false
+    t.string   "domain_type",                                           null: false
+    t.string   "state",                        default: "never_synced", null: false
     t.integer  "current_value",      limit: 8
     t.integer  "desired_value",      limit: 8
-    t.integer  "lock_version",       limit: 8, default: 1, null: false
-    t.datetime "created_at",                               null: false
-    t.datetime "updated_at",                               null: false
+    t.integer  "lock_version",       limit: 8, default: 1,              null: false
+    t.datetime "created_at",                                            null: false
+    t.datetime "updated_at",                                            null: false
   end
 
   add_index "quotas_quotas", ["_uniq_subject_id", "_uniq_subject_type", "kind_id", "domain_id", "domain_type"], name: "i_quotas_on_subject_kind_and_domain", unique: true, using: :btree
