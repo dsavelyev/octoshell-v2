@@ -6,7 +6,7 @@ class CreateQuotasQuotas < ActiveRecord::Migration
       t.belongs_to :subject,            polymorphic: true
       t.belongs_to :kind,               null: false
       t.belongs_to :domain,             null: false, polymorphic: true
-      t.string     :state,              null: false, default: "never_synced"
+      t.boolean    :syncing,            null: false, default: false
       t.integer    :current_value,      limit: 8
       t.integer    :desired_value,      limit: 8
       t.integer    :lock_version,       limit: 8, null: false, default: 1
