@@ -101,7 +101,6 @@ module Quotas
     # where the transaction includes actually getting the object
     def self.synchronize!(params)
       entity_ids = with_quota_by(params) do |q|
-        return false if q.syncing
         q.syncing = true
 
         q.entity_ids
