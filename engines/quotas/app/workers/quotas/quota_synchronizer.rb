@@ -3,82 +3,87 @@ module Quotas
     include Sidekiq::Worker
     sidekiq_options queue: :synchronizer, retry: 0, backtrace: true
 
+    include SyncWorkerBase
+
     # We use our own retry mechanism
-    MAX_RETRIES = 5
-    RETRY_DELAY = 5.minutes
+    self.max_tries = 5
+    self.retry_delay = 5.minutes
 
-    def perform(params)
-      try = params.delete('try') || 1
+    def perform(id_list, try = 1)
+      successes = []
+      retries = []
 
-      q = Quota.includes(:subject, :domain, kind: :cluster)
-               .find_or_initialize_by(params)
+      id_list.each do |ids|
+        q = Quota.includes(:subject, :domain, kind: :cluster)
+                 .find_or_initialize_by(ids)
 
-      cluster = q.kind.cluster
-      cmd = cmd_from_quota(q)
+        cluster, cmd = cluster_cmd_from_quota(q)
 
-      # TODO: record the result somewhere
-      status =
-        case (exit_code = SyncUtil.run_on_cluster(cluster, cmd))
+        case run_on_cluster(cluster, cmd)[:exit_code]
         when 0
-          :success
+          successes << [ids, q.desired_value]
         when 1
-          enqueue_retry(params, try)
-          :retry
-        else
-          raise "failed after #{try} tries, exit code #{exit_code.inspect}"
+          retries << ids
         end
+      end
+
+      enqueue_retry(retries, try + 1) if !retries.empty?
+
     ensure
-      unless status == :retry
+      failures = id_list - successes - retries
+
+      successes.each do |[params, desired_value]|
         # refetch the same quota (could have changed id/lock_version)
         Quota.with_quota_by(params) do |q|
-          status == :success && q.current_value = q.desired_value
+          q.current_value = desired_value
+          q.syncing = false
+        end
+      end
+
+      failures.each do |params|
+        Quota.with_quota_by(params) do |q|
           q.syncing = false
         end
       end
     end
 
-    private
+    module_function
 
-    def enqueue_retry(params, try)
-      raise "retries exhausted (#{try})" if try >= MAX_RETRIES
+    def cluster_cmd_from_quota(q, mode=:sync)
+      if q.subject_id
+        (subject = q.subject) || raise('subject id invalid')
+        (project = q.project) || raise('project id invalid')
+      end
 
-      params = params.merge('try' => try + 1)
-      return if self.class.perform_in(RETRY_DELAY, params)
+      kind = q.kind
+      kind || raise('quota kind id invalid')
 
-      raise "could not requeue job for try #{try + 1}"
-    end
+      cluster = kind.cluster
+      cluster || raise('cluster id invalid')
 
-    def cmd_from_quota(q)
-      raise 'subject invalid' if !q.subject && q.subject_id
-
-      cluster = q.kind.cluster
-
-      cmd = Shellwords.escape("/usr/octo/quotas/sync-#{q.kind.name_on_cluster}")
-
-      project =
-        case q.subject
-        when Core::Project
-          q.subject
-        when Core::Member
-          q.subject.project
-        end
+      domain = q.domain
+      domain || raise('domain invalid')
 
       access = project && project.accesses.find_by!(cluster: cluster)
 
-      case q.subject
+      cmd = Shellwords.escape("/usr/octo/quotas/#{mode.to_s}-#{kind.name_on_cluster}")
+
+      case subject
       when Core::Project
         cmd << " -g #{Shellwords.escape(access.project_group_name)}"
       when Core::Member
-        cmd << " -u #{Shellwords.escape(q.subject.login)}"
+        cmd << " -u #{Shellwords.escape(subject.login)}"
       end
 
-      if q.domain.is_a? Core::Partition
-        cmd << " -p #{Shellwords.escape(q.domain.name)}"
+      if domain.is_a? Core::Partition
+        cmd << " -p #{Shellwords.escape(domain.name)}"
       end
 
-      cmd << " #{q.desired_value}"
+      if mode == :sync
+        cmd << " #{q.desired_value || "nil"}"
+      end
 
-      cmd
+      [cluster, cmd]
     end
   end
 end

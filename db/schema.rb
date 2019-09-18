@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190530192758) do
+ActiveRecord::Schema.define(version: 20190625070819) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -806,8 +806,8 @@ ActiveRecord::Schema.define(version: 20190530192758) do
     t.integer  "cluster_id",            null: false
     t.integer  "quota_kind_id",         null: false
     t.string   "name_on_cluster",       null: false
-    t.string   "comment_ru",            null: false
-    t.string   "comment_en",            null: false
+    t.string   "comment_ru"
+    t.string   "comment_en"
     t.boolean  "applies_to_partitions", null: false
     t.string   "semantics_type",        null: false
     t.integer  "semantics_data_id"
@@ -829,12 +829,12 @@ ActiveRecord::Schema.define(version: 20190530192758) do
   end
 
   create_table "quotas_quota_kinds", force: :cascade do |t|
-    t.string   "name_ru",    null: false
-    t.string   "name_en",    null: false
-    t.string   "unit_ru",    null: false
-    t.string   "unit_en",    null: false
-    t.string   "comment_ru", null: false
-    t.string   "comment_en", null: false
+    t.string   "name_ru"
+    t.string   "name_en"
+    t.string   "unit_ru"
+    t.string   "unit_en"
+    t.string   "comment_ru"
+    t.string   "comment_en"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

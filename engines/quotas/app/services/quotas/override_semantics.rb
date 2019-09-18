@@ -1,7 +1,5 @@
 module Quotas
   class OverrideSemantics
-    include Semantics
-
     attr_reader :data
 
     def initialize(data)
@@ -13,12 +11,10 @@ module Quotas
     end
 
     def synchronize!
-      return false if @data.syncing
+      data.syncing = true
+      data.save!
 
-      @data.syncing = true
-      @data.save!
-
-      #OverrideSemanticsSynchronizer.perform_async(id: @data.id)
+      OverrideSemanticsSynchronizer.perform_async(data.id)
     end
   end
 end

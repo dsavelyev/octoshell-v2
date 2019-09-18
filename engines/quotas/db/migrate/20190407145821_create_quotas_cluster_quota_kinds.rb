@@ -4,8 +4,8 @@ class CreateQuotasClusterQuotaKinds < ActiveRecord::Migration
       t.belongs_to :cluster,               null: false
       t.belongs_to :quota_kind,            null: false
       t.string     :name_on_cluster,       null: false
-      t.string     :comment_ru,            null: false
-      t.string     :comment_en,            null: false
+      t.string     :comment_ru
+      t.string     :comment_en
       t.boolean    :applies_to_partitions, null: false
       t.string     :semantics_type,        null: false
       t.belongs_to :semantics_data,        polymorphic: true

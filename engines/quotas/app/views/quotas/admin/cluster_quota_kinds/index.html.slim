@@ -1,0 +1,11 @@
+div class="page-header"
+  h1 = t(".title", default: "Cluster Quota Kinds")
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to t(".new_quota_kind"), new_admin_cluster_quota_kind_path, class: "btn btn-default"
+
+  div class="panel-body"
+    = safe_paginate @cluster_quota_kinds
+    = render "table", cluster_quota_kinds: @cluster_quota_kinds
+    = safe_paginate @cluster_quota_kinds

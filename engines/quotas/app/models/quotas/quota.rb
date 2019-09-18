@@ -1,9 +1,7 @@
-=begin
-Note that quotas are intended to be looked up by subject, kind, and domain, not
-id, because a quota with nil {current,desired}_value that isn't being synced is
-represented by not having a record in the DB at all. id and lock_version
-essentially act as a "major.minor" version value.
-=end
+# Note that quotas are intended to be looked up by subject, kind, and domain,
+# not id, because a quota with nil {current,desired}_value that isn't being
+# synced is represented by not having a record in the DB at all. id and
+# lock_version essentially act as a "major.minor" version value.
 
 module Quotas
   class Quota < ActiveRecord::Base
@@ -15,6 +13,8 @@ module Quotas
     validates :syncing, inclusion: { in: [false, true] }
 
     validate on: :create do |quota|
+      next unless quota.consistent?
+
       if quota.class.exists? subject: subject, kind: kind, domain: domain
         errors[:base] << I18n.t('quotas.quota.already_exists')
       end
@@ -25,6 +25,8 @@ module Quotas
     end
 
     validate do |quota|
+      next unless quota.consistent?
+
       dom_id = quota.domain_id
       cluster_id =
         case quota.domain_type
@@ -63,12 +65,25 @@ module Quotas
     ransack_alias :direct_cluster_id, 'domain_of_Core::Cluster_type_id'
     ransack_alias :partition_id, 'domain_of_Core::Partition_type_id'
 
+    def project
+      case subject
+      when Core::Project
+        subject
+      when Core::Member
+        subject.project
+      end
+    end
+
     ENTITY_ID_ATTRS = %i[subject_id subject_type kind_id domain_id domain_type].freeze
 
     def entity_ids
       ENTITY_ID_ATTRS
         .map { |v| [v, send(v)] }
         .to_h
+    end
+
+    def consistent?
+      (!subject_id || subject) && kind && domain && [false, true].include?(syncing)
     end
 
     def potential?
@@ -87,57 +102,48 @@ module Quotas
 
     # Will raise an exception on conflict
     def synchronize!
-      return false if syncing
-
       self.syncing = true
       persist!
 
-      QuotaSynchronizer.perform_async(entity_ids)
-
-      true
+      QuotaSynchronizer.perform_async([entity_ids])
     end
 
-    # Same as above, but instead retries the whole "transaction" on conflict,
-    # where the transaction includes actually getting the object
-    def self.synchronize!(params)
-      entity_ids = with_quota_by(params) do |q|
-        q.syncing = true
+    def self.synchronize!(which)
+      all_entity_ids = which.map do |params|
+        with_quota_by(params) do |q|
+          q.syncing = true
 
-        q.entity_ids
+          q.entity_ids
+        end
       end
 
-      QuotaSynchronizer.perform_async(entity_ids)
-
-      true
+      QuotaSynchronizer.perform_async(all_entity_ids)
     end
 
-    def self.synchronize_all!(params_list)
-      params_list.each do |params|
-        synchronize!(params)
+    def verify!
+      QuotaVerifier.perform_async([entity_ids])
+    end
+
+    def self.verify!(which)
+      all_entity_ids = which.map do |params|
+        with_quota_by(params, &:entity_ids)
       end
+
+      QuotaVerifier.perform_async(all_entity_ids)
     end
 
     # A "transactional" wrapper around operations with quotas, will
     # insert/update/delete as appropriate. Returns the value returned by the
     # block
     def self.with_quota_by(params)
-      q = find_or_initialize_by(params)
-      ret = yield q
+      Retry.with_retries on: [ActiveRecord::RecordNotUnique, ActiveRecord::StaleObjectError] do
+        q = find_or_initialize_by(params)
+        ret = yield q
 
-      q.persist!
+        q.persist!
 
-      ret
-    rescue ActiveRecord::RecordNotUnique, ActiveRecord::StaleObjectError
-      retry
-    end
-
-    # Get the effective quota values for a particular object (which may be nil)
-    def self.values_at(q)
-      {
-        current_value: q&.current_value,
-        desired_value: q&.desired_value,
-        syncing: q&.syncing || false
-      }
+        ret
+      end
     end
   end
 end

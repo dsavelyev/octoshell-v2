@@ -1,0 +1,22 @@
+- if cluster_quota_kinds.any?
+  cluster_quota_kinds.each do |cluster, cqks|
+    br
+    h2 = cluster.name
+    table class="table table-bordered"
+      tr
+        th class="col-xs-1"
+        th class="col-xs-3" = Core::QuotaKind.human_attribute_name(:name)
+        th class="col-xs-2" = Core::ClusterQuotaKind.human_attribute_name(:name_on_cluster)
+        th class="col-xs-2" = Core::ClusterQuotaKind.human_attribute_name(:semantics_type)
+        th class="col-xs-1" = Core::ClusterQuotaKind.human_attribute_name(:applies_to_partitions)
+        th class="col-xs-3" = Core::ClusterQuotaKind.human_attribute_name(:comment)
+      - cqks.each do |cqk|
+        tr
+          td = cqk.id
+          td = link_to cqk.quota_kind.name, [:edit, :admin, cqk]
+          td = cqk.name_on_cluster
+          td = cqk.semantics_type
+          td = cqk.applies_to_partitions ? "yes" : "no"
+          td = quota_kind.comment
+- else
+  p = t("no_records_found")

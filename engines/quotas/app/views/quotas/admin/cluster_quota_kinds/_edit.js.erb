@@ -1,0 +1,74 @@
+$("#cqk_form").alpaca({
+    "schema": {
+        "type": "object",
+        "properties": {
+            "cluster_id": {
+                "title": "<%= Core::Cluster.human_attribute_name(:name) %>",
+                "enum": "<%= raw cluster_options.to_json %>",
+                "required": true
+            },
+            "quota_kind_id": {
+                "title": "<%= Quotas::QuotaKind.human_attribute_name(:name) %>",
+                "enum": "<%= raw quota_kind_options.to_json %>",
+                "required": true
+            },
+            "name_on_cluster": {
+                "title": "<%= Quotas::ClusterQuotaKind.human_attribute_name(:name_on_cluster) %>",
+                "type": "string",
+                "required": true
+            },
+            "comment_en": {
+                "title": "<%= Quotas::ClusterQuotaKind.human_attribute_name(:comment_en) %>",
+                "type": "string",
+                "required": true
+            },
+            "comment_ru": {
+                "title": "<%= Quotas::ClusterQuotaKind.human_attribute_name(:comment_ru) %>",
+                "type": "string",
+                "required": true
+            },
+            "applies_to_partitions": {
+                "type": "boolean"
+            },
+            "semantics_type": {
+                "title": "<%= Quotas::ClusterQuotaKind.human_attribute_name(:semantics_type) %>",
+                "enum": "<%= raw semantics_type_options.to_json %>",
+                "required": true
+            },
+            "semantics_data[desired_priority]": {
+                "type": "string"
+            }
+        },
+        "options": {
+            "fields": {
+                "cluster_id": {
+                    "type": "select",
+                    "optionLabels": "<%= raw cluster_labels.to_json %>",
+                    "validate": false
+                },
+                "quota_kind_id": {
+                    "type": "select",
+                    "optionLabels": "<%= raw quota_kind_labels.to_json %>",
+                    "validate": false
+                },
+                "applies_to_partitions": {
+                    "type": "checkbox",
+                    "label": "<%= raw applies_to_partitions_label.to_json %>",
+                    "validate": false
+                },
+                "semantics_type": {
+                    "type": "select"
+                }
+            }
+        },
+        "form": {
+            "attributes": {
+                "method": "post",
+                "action": "<%=url_for(action: 'update')%>",
+            },
+            "buttons": {
+                "submit": {}
+            }
+        }
+    }
+});

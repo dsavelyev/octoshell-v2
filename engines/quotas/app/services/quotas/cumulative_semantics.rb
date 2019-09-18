@@ -1,7 +1,5 @@
 module Quotas
   class CumulativeSemantics
-    include Semantics
-
     def initialize(_data)
     end
 

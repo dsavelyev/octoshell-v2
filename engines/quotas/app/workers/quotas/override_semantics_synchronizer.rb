@@ -16,7 +16,16 @@ module Quotas
       cmd = Shellwords.escape("/usr/octo/quotas/sync-semantics-#{cqk.name_on_cluster}")
       cmd << " #{Shellwords.escape(osd.desired_priority.join(','))}"
 
-      status = run_script_on_cluster(cluster, cmd, try, id)
+      status =
+        case (exit_code = run_on_cluster(cluster, cmd)[:exit_code])
+        when 0
+          :success
+        when 1
+          enqueue_retry(id, try + 1)
+          :retry
+        else
+          raise "override semantics sync of #{id} failed with exit code #{exit_code.inspect}, cmd was #{cmd}"
+        end
     ensure
       unless status == :retry
         status == :success && osd.current_priority = osd.desired_priority
